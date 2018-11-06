@@ -709,7 +709,13 @@ class InMemScript(DialsProcessScript, DialsProcessorWithLogging):
     all_runs = []
     xrun_num = params.input.run_num.strip().split(',')
     for x in xrun_num:
-      all_runs.extend([int(z) for z in x.split('-')])
+      z = x.split('-')
+      if len(z) == 1:
+        all_runs.extend(int(z[0]))
+      elif len(z) == 2:
+        all_runs.extend(range(int(z[0]), int(z[1])+1))
+      else:
+        print ('cant extend run(s)', str(x))
     total_runs = len(list(set(all_runs)))
     print 'TOTAL_RUNS',total_runs
 
@@ -767,8 +773,11 @@ class InMemScript(DialsProcessScript, DialsProcessorWithLogging):
         process_fractions = fractions.Fraction(percent).limit_denominator(100)
       # list of all events
       # only cycle through times in client_server mode
+      if params.mp.mpi.method != 'client_server' and total_runs > 1:
+        raise Sorry("This script currently is supported only for client-server MPI.")
       if params.mp.method == "mpi" and params.mp.mpi.method == 'client_server' and size > 2:
         run_count += 1
+        print ('RUN_COUNT_COMBO = ',run_count,' ', run.run())
         # process fractions only works in idx-striping mode
         if params.dispatch.process_percent:
           raise Sorry("Process percent only works in striping mode.")
