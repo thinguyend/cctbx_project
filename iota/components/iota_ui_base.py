@@ -325,6 +325,10 @@ class BaseOptionsDialog(BaseDialog):
 
 
 class PHILPanelFactory(IOTABasePanel):
+  """ Factory class for dialog panel automatically created from PHIL
+  settings  """
+
+
   def __init__(self, parent, objects, layers=None, *args, **kwargs):
     IOTABasePanel.__init__(self, parent=parent, *args, **kwargs)
 
