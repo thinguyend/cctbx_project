@@ -203,7 +203,7 @@ class MainWindow(IOTABaseFrame):
     self.tb_dlg_test = self.add_tool(label='Test',
                                      bitmap=('actions', 'utilities'),
                                      shortHelp='Test Dialog')
-    self.toolbar.RemoveTool(self.tb_dlg_test.GetId())
+    # self.toolbar.RemoveTool(self.tb_dlg_test.GetId())
 
     # These buttons will be disabled until input path is provided
     self.set_tool_state(self.tb_btn_run, False)
@@ -244,17 +244,16 @@ class MainWindow(IOTABaseFrame):
               self.input_window.input)
 
   def onTest(self, e):
-    pass
-  #   from libtbx.phil import find_scope
-  #   scopes = [find_scope(self.iota_phil, 'description'),
-  #             find_scope(self.iota_phil, 'output'),
-  #             find_scope(self.iota_phil, 'input')]
-  #   test = d.TestDialog(self,
-  #                         scope=scopes,
-  #                         title='Test Options')
-  #   if test.ShowModal() == wx.ID_OK:
-  #     print ('debug: OK!!')
-  #   test.Destroy()
+    from libtbx.phil import find_scope
+    scopes = [find_scope(self.iota_phil, 'description'),
+              find_scope(self.iota_phil, 'output'),
+              find_scope(self.iota_phil, 'input')]
+    test = d.TestDialog(self,
+                          scope=scopes,
+                          title='Test Options')
+    if test.ShowModal() == wx.ID_OK:
+      print ('debug: OK!!')
+    test.Destroy()
 
   def onItemInserted(self, e):
     print (self.input_window.input.all_data_images)
