@@ -316,6 +316,14 @@ namespace mtz {
       batch
       add_batch();
 
+      //! Adds a new batch to this object (default values, no check).
+      batch
+      add_batch_no_check(const int batch_num);
+
+      //! Adds a new batch to this object (default values, optional checks).
+      batch
+      add_batch_all(const int batch_num, const bool check);
+
       //! Wrapper for CMtz::sort_batches() .
       void
       sort_batches()

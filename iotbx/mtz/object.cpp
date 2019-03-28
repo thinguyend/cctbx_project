@@ -249,16 +249,34 @@ namespace iotbx { namespace mtz {
   batch
   object::add_batch()
   {
+    return add_batch_all(0, true);
+  }
+
+  batch
+  object::add_batch_no_check(const int batch_num)
+  {
+    return add_batch_all(batch_num, false);
+  }
+
+  batch
+  object::add_batch_all(const int batch_num, const bool check)
+  {
     CMtz::MTZBAT* p = ptr()->batch;
     CMtz::MTZBAT* p_tail = p;
     int max_batch_number = 0;
     int i_batch = 0;
-    for(;;i_batch++) {
-      if (p == 0) break;
-      max_batch_number = std::max(max_batch_number, p->num);
-      p_tail = p;
-      p = p->next;
+
+    if (batch_num <= 0) {
+      for(;;i_batch++) {
+        if (p == 0) break;
+        max_batch_number = std::max(max_batch_number, p->num);
+        p_tail = p;
+        p = p->next;
+      }
+    } else {
+      max_batch_number = batch_num - 1;
     }
+
     boost::scoped_array<float> buf(new float[NBATCHINTEGERS+NBATCHREALS]);
     std::fill_n(buf.get(), NBATCHINTEGERS+NBATCHREALS, static_cast<float>(0));
 #if defined(__DECCXX_VER)
@@ -268,10 +286,12 @@ namespace iotbx { namespace mtz {
 #endif
     IOTBX_ASSERT(CMtz::ccp4_lwbat(
       ptr(), 0, max_batch_number+1, buf.get(), "") == 1);
-    p = (p_tail == 0 ? ptr()->batch : p_tail->next);
-    IOTBX_ASSERT(p != 0);
-    IOTBX_ASSERT(p->next == 0);
-    IOTBX_ASSERT(p->num == max_batch_number+1);
+    if (check) {
+      p = (p_tail == 0 ? ptr()->batch : p_tail->next);
+      IOTBX_ASSERT(p != 0);
+      IOTBX_ASSERT(p->next == 0);
+      IOTBX_ASSERT(p->num == max_batch_number+1);
+    }
     return batch(*this, i_batch);
   }
 

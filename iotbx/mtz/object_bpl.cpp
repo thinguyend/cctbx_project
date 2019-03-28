@@ -114,6 +114,8 @@ namespace {
         .def("n_batches", &w_t::n_batches)
         .def("batches", &w_t::batches)
         .def("add_batch", &w_t::add_batch)
+        .def("add_batch_no_check", &w_t::add_batch_no_check,
+             (arg("batch_number")))
         .def("sort_batches", &w_t::sort_batches)
         .def("n_reflections", &w_t::n_reflections)
         .def("max_min_resolution", &w_t::max_min_resolution)
