@@ -15,8 +15,8 @@ import iotbx.phil as ip
 
 from iota import prime_description, prime_license
 from iota.components.iota_utils import Capturing
-from iota.components.iota_ui_base import IOTABaseFrame
-import iota.components.iota_ui_controls as ct
+from iota.components.gui.base import IOTABaseFrame
+import iota.components.gui.controls as ct
 from prime.postrefine import mod_gui_frames as frm
 from prime.postrefine import mod_gui_dialogs as dlg
 from prime.postrefine.mod_input import master_phil

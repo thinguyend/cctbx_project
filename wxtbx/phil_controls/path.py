@@ -1,6 +1,6 @@
 from __future__ import division
 from wxtbx.phil_controls import text_base
-from wxtbx import phil_controls
+from wxtbx import phil_controls, wx4_compatibility as wx4c
 import wxtbx.icons
 from libtbx.utils import Sorry, to_unicode, to_str
 from libtbx import Auto
@@ -15,11 +15,14 @@ WXTBX_PHIL_PATH_NARROW = 8
 WXTBX_PHIL_PATH_UPDATE_ON_KILL_FOCUS = 16
 WXTBX_PHIL_PATH_DEFAULT_CWD = 32
 
-class PathCtrl(wx.PyPanel, phil_controls.PhilCtrl):
+WxCtrl = wx4c.get_wx_mod(wx, wx.Panel)
+
+
+class PathCtrl(WxCtrl, phil_controls.PhilCtrl):
   def __init__(self, *args, **kwds):
     phil_controls.PhilCtrl.__init__(self)
     self.SetOptional(True) # this will be overridden elsewhere if necessary
-    wx.SystemOptions.SetOptionInt("osx.openfiledialog.always-show-types", 1)
+    wx.SystemOptions.SetOption("osx.openfiledialog.always-show-types", 1)
     kwds = dict(kwds)
     self._path_style = kwds.get("style", WXTBX_PHIL_PATH_VIEW_BUTTON)
     assert ((self._path_style & WXTBX_PHIL_PATH_DIRECTORY) or
@@ -38,7 +41,7 @@ class PathCtrl(wx.PyPanel, phil_controls.PhilCtrl):
       path_size = kwds.get("size", (400, -1))
       szr2_pad = wx.LEFT
     kwds['size'] = wx.DefaultSize
-    wx.PyPanel.__init__(self, *args, **kwds)
+    WxCtrl.__init__(self, *args, **kwds)
     self._formats = ()
     szr = wx.BoxSizer(szr_type)
     self.SetSizer(szr)

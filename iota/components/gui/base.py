@@ -2,10 +2,9 @@ from __future__ import division, print_function, absolute_import
 
 '''
 Author      : Lyubimov, A.Y.
-Created     : 11/15/2018
-Last Changed: 01/30/2019
-Description : IOTA GUI base classes (with backwards compatibility for
-              wxPython 3)
+Created     : 04/02/2019
+Last Changed: 04/02/2019
+Description : IOTA GUI base classes
 '''
 
 import os
@@ -16,7 +15,7 @@ from wx.lib.scrolledpanel import ScrolledPanel
 from wxtbx import bitmaps
 from iotbx.phil import parse
 
-import iota.components.iota_ui_controls as ct
+import iota.components.gui.controls as ct
 from iota.components.iota_utils import norm_font_size
 
 wx4 = wx.__version__[0] == '4'
@@ -169,6 +168,14 @@ class IOTABasePanel(wx.Panel):
     self.main_sizer = wx.BoxSizer(wx.VERTICAL)
     self.SetSizer(self.main_sizer)
 
+class IOTABaseScrolledPanel(ScrolledPanel):
+  def __init__(self, parent, *args, **kwargs):
+    ScrolledPanel.__init__(self, parent=parent, id=wx.ID_ANY, size=(800, 500),
+                          *args, **kwargs)
+
+    self.main_sizer = wx.BoxSizer(wx.VERTICAL)
+    self.SetSizer(self.main_sizer)
+
 class BaseDialog(wx.Dialog):
   def __init__(self, parent, style=wx.DEFAULT_DIALOG_STYLE,
                label_style='bold',
@@ -308,7 +315,7 @@ class BaseOptionsDialog(BaseDialog):
 
   def __init__(self, parent, input, *args, **kwargs):
     dlg_style = wx.CAPTION | wx.CLOSE_BOX | wx.RESIZE_BORDER | wx.STAY_ON_TOP
-    BaseDialog.__init__(self, parent, style=dlg_style, *args, **kwargs)
+    BaseDialog.__init__(self, parent, style=dlg_style, *args,  **kwargs)
 
     self.parent = parent
 
@@ -321,16 +328,15 @@ class BaseOptionsDialog(BaseDialog):
                         flag=wx.EXPAND | wx.ALIGN_RIGHT | wx.ALL,
                         border=10)
 
-    self.Fit()
+    self.Layout()
 
 
-class PHILPanelFactory(IOTABasePanel):
+class PHILPanelFactory(IOTABaseScrolledPanel):
   """ Factory class for dialog panel automatically created from PHIL
-  settings  """
-
+  settings """
 
   def __init__(self, parent, objects, layers=None, *args, **kwargs):
-    IOTABasePanel.__init__(self, parent=parent, *args, **kwargs)
+    IOTABaseScrolledPanel.__init__(self, parent=parent, *args, **kwargs)
 
     self.layers = layers
 
@@ -341,6 +347,9 @@ class PHILPanelFactory(IOTABasePanel):
         self.add_scope_box(obj=obj)
       elif obj.is_definition:
         self.add_definition_control(self, obj)
+
+    self.SetupScrolling()
+
 
 
   def get_all_path_names(self, phil_object, paths=None):

@@ -28,7 +28,7 @@ assert Axes3D
 assert cm
 assert colors
 
-from iota.components.iota_ui_base import IOTABaseFrame, IOTABasePanel
+from iota.components.gui.base import IOTABaseFrame, IOTABasePanel
 
 class PlotWindow(IOTABaseFrame):
   def __init__(self, parent, id, title, plot_panel=None):

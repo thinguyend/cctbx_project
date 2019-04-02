@@ -2,8 +2,8 @@ from __future__ import division, print_function, absolute_import
 
 '''
 Author      : Lyubimov, A.Y.
-Created     : 01/17/2017
-Last Changed: 01/30/2019
+Created     : 04/02/2019
+Last Changed: 04/02/2019
 Description : IOTA GUI Dialogs
 '''
 
@@ -14,8 +14,8 @@ from wxtbx import bitmaps
 
 from iotbx import phil as ip
 
-from iota.components.iota_ui_base import BaseDialog, BaseBackendDialog, BaseOptionsDialog
-import iota.components.iota_ui_controls as ct
+from iota.components.gui.base import BaseDialog, BaseBackendDialog, BaseOptionsDialog
+import iota.components.gui.controls as ct
 from iota.components.iota_input import master_phil
 from iota.components.iota_utils import UnicodeCharacters, WxFlags, noneset
 
@@ -49,7 +49,9 @@ class TestDialog(BaseOptionsDialog):
 
   def __init__(self, parent, scope, *args, **kwargs):
     self.parent = parent
-    BaseOptionsDialog.__init__(self, parent, input=scope, *args, **kwargs)
+    BaseOptionsDialog.__init__(self, parent, input=scope, size=(400, 600), *args, **kwargs)
+
+    self.Layout()
 
 
 class IOTAPreferences(BaseDialog):
@@ -73,7 +75,7 @@ class IOTAPreferences(BaseDialog):
 
     # Import current PHIL and set params to current values
     if phil is None:
-      from iota.components.iota_ui_base import gui_phil
+      from iota.components.gui.base import gui_phil
       phil = master_phil.adopt(gui_phil)
 
     self.params = phil.extract()

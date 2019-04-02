@@ -1,5 +1,6 @@
-IOTA v1.3.006 - added reference geometry
+IOTA v1.4.001 - GUI update
 
-Added the option to include a reference geometry path to apply the results of
-ensemble refinement of detector geometry to processing (per Brewster, et al.
-Acta Crystallogr D Struct Biol. 2018 Sep 1;74(Pt 9):877-894)
+04.02.2019
+
+1. Moved GUI base, controls, and dialogs modules from components folder to
+components/gui; change affects PRIME and simtbx GUIs as well

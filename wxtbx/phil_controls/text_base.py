@@ -1,6 +1,6 @@
 
 from __future__ import division
-from wxtbx import phil_controls
+from wxtbx import phil_controls, wx4_compatibility as wx4c
 import wxtbx
 from libtbx.utils import Abort, to_unicode, to_str
 from libtbx import Auto
@@ -75,9 +75,10 @@ class ValidatedTextCtrl(wx.TextCtrl, phil_controls.PhilCtrl):
     else :
       self.SetBackgroundColour((200,200,200))
 
-class TextCtrlValidator(wx.PyValidator):
+WxValidator = wx4c.get_wx_mod(wx, wx.Validator)
+class TextCtrlValidator(WxValidator):
   def __init__(self):
-    wx.PyValidator.__init__(self)
+    WxValidator.__init__(self)
     self.Bind(wx.EVT_TEXT_ENTER, self.OnEnter)
 
   def Clone(self):

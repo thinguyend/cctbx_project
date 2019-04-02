@@ -19,7 +19,7 @@ from matplotlib.figure import Figure
 from iotbx import phil as ip
 from simtbx.nanoBragg import nanoBragg_gui_dialogs as dlg
 from simtbx.nanoBragg import nanoBragg_threads as thr
-from iota.components import iota_ui_controls as ct
+from iota.components.gui import controls as ct
 from iota.components.iota_utils import InputFinder, WxFlags, noneset
 
 ginp = InputFinder()

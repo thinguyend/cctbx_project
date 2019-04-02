@@ -33,13 +33,13 @@ class manager(object):
   def select_file(self,
                    parent,
                    message,
-                   style=wx.OPEN,
+                   style=wx.FD_OPEN,
                    wildcard="All files (*.*)|*.*",
                    current_file=None,
                    multiple=False,
                    save=None):
     if (save):
-      style = wx.SAVE
+      style = wx.FD_SAVE
     default_dir = self.last_dir
     default_file = ""
     if (current_file is not None) and (current_file != ""):
@@ -87,7 +87,7 @@ class manager(object):
     default_path = to_unicode(default_path)
     new_path = wx.DirSelector(
       message=message,
-      defaultPath=default_path,
+      default_path=default_path,
       style=style|wx.DD_NEW_DIR_BUTTON,
       parent=parent)
     if (new_path != ""):

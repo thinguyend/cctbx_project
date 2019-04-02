@@ -39,13 +39,13 @@ import prime.postrefine.mod_plotter as ppl
 from iota import iota_version, gui_description, gui_license
 from iota.components import iota_init as init
 from iota.components.iota_base import ProcInfo
-from iota.components.iota_ui_base import IOTABaseFrame, IOTABasePanel
+from iota.components.gui.base import IOTABaseFrame, IOTABasePanel
 from iota.components.iota_analysis import Analyzer
 from iota.components.iota_plotter import Plotter, PlotWindow
 import iota.components.iota_input as inp
-import iota.components.iota_ui_controls as ct
+import iota.components.gui.controls as ct
 import iota.components.iota_threads as thr
-import iota.components.iota_ui_dialogs as d
+import iota.components.gui.dialogs as d
 import iota.components.iota_utils as ut
 
 f = ut.WxFlags()
@@ -102,6 +102,11 @@ class InputWindow(IOTABasePanel):
     self.input.button_sizer.Add(self.opt_btn_process)
     self.input.button_sizer.Add(self.opt_btn_analysis)
 
+    # Test buttons
+    self.tst_button_dials = wx.Button(self.input, label='DIALS options...')
+    self.input.button_sizer.Add(self.tst_button_dials)
+    self.Bind(wx.EVT_BUTTON, self.onTestDIALSOptions, self.tst_button_dials)
+
     # Put everything into main sizer
     self.main_sizer.Add(self.project_title, flag=f.expand, border=10)
     self.main_sizer.Add(self.project_folder, flag=f.expand, border=10)
@@ -114,6 +119,9 @@ class InputWindow(IOTABasePanel):
     self.Bind(wx.EVT_BUTTON, self.onProcessOptions, self.opt_btn_process)
     self.Bind(wx.EVT_BUTTON, self.onAnalysisOptions, self.opt_btn_analysis)
 
+
+  def onTestDIALSOptions(self, e):
+    e.Skip()
 
   def onMagButton(self, e):
     dirview = d.DirView(self, title='Current Folder')
@@ -239,6 +247,12 @@ class MainWindow(IOTABaseFrame):
     self.Bind(wx.EVT_BUTTON, self.onAnalysisOptions,
               self.input_window.opt_btn_analysis)
 
+    # Test DIALS options
+    self.Bind(wx.EVT_BUTTON, self.onTestDIALSOptions,
+              self.input_window.tst_button_dials)
+
+
+
     # File list control bindings
     self.Bind(ulc.EVT_LIST_INSERT_ITEM, self.onItemInserted,
               self.input_window.input)
@@ -253,6 +267,16 @@ class MainWindow(IOTABaseFrame):
                           title='Test Options')
     if test.ShowModal() == wx.ID_OK:
       print ('debug: OK!!')
+    test.Destroy()
+
+  def onTestDIALSOptions(self, e):
+    from libtbx.phil import find_scope
+    from dials.command_line.stills_process import phil_scope
+
+    scope = find_scope(phil_scope, 'spotfinder')
+    test = d.TestDialog(self, scope=scope, title='Test Spf Options')
+    if test.ShowModal() == wx.ID_OK:
+      print ('DEBUG: OK!!')
     test.Destroy()
 
   def onItemInserted(self, e):

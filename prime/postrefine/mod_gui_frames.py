@@ -23,8 +23,8 @@ from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigureCanvas
 from matplotlib.figure import Figure
 
 import iota.components.iota_utils as util
-import iota.components.iota_ui_controls as ct
-from iota.components.iota_ui_base import IOTABasePanel, IOTABaseFrame
+import iota.components.gui.controls as ct
+from iota.components.gui.base import IOTABasePanel, IOTABaseFrame
 
 import prime.postrefine.mod_gui_dialogs as dlg
 import prime.postrefine.mod_threads as thr
