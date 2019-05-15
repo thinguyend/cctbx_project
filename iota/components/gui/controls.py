@@ -20,6 +20,8 @@ from wxtbx import bitmaps
 from wxtbx.phil_controls import choice, strctrl, path
 import wx.lib.buttons as btn
 
+from libtbx.utils import to_unicode
+
 from iota.components.iota_utils import noneset, InputFinder
 from iota.components.iota_threads import ImageViewerThread
 
@@ -52,6 +54,25 @@ MB_STYLE_DEFAULT = 1
 MB_STYLE_BOLD_LABEL = 2
 MB_STYLE_DROPARROW = 4
 
+# --------------------------- Master Widget Classes -------------------------- #
+
+class IOTACtrl(object):
+  ''' Mixin to add IOTA-specific functions to IOTA controls '''
+
+  def bind_event(self, event_type, event_handler):
+    ''' General function to bind an event to parent frame; absent that,
+        to parent object; absent that, to current object
+    :param event_type: e.g. wx.EVT_BUTTON
+    :param event_handler: handler function for bound event
+    '''
+
+    try:
+      self.parent.get_frame().Bind(event_type, event_handler, self)
+    except Exception:
+      try:
+        self.parent.Bind(event_type, event_handler, self)
+      except Exception:
+        self.Bind(event_type, event_handler, self)
 
 # --------------------------------- Widgets ---------------------------------- #
 
@@ -64,7 +85,7 @@ def StandardBitmap(img_name, size=None):
   bmp = img.ConvertToBitmap()
   return bmp
 
-class GradButton(mb.MetallicButton):
+class GradButton(mb.MetallicButton, IOTACtrl):
   """ Customized MetallicButton """
 
   def __init__(self, parent, label='', bmp=None, size=wx.DefaultSize,
@@ -94,6 +115,8 @@ class GradButton(mb.MetallicButton):
                                button_margin=button_margin,
                                disable_after_click=disable_after_click
                                )
+
+    self.user_data = user_data
     if handler_function is not None:
       self.bind_event(wx.EVT_BUTTON, handler_function)
 
@@ -161,6 +184,27 @@ class DataTypeChoice(wx.Panel):
     self.type = wx.Choice(self, -1, choices=choices)
     self.Fit()
 
+
+class IOTAButton(wx.Button, IOTACtrl):
+  _id = -1
+  ''' Master class for all basic IOTA buttons '''
+
+  def __init__(self, parent, label=wx.EmptyString, handler_function=None):
+    ''' Constructor
+    :param label: button label
+    :param handler_function: handler function for the button press event
+    '''
+    wx.Button.__init__(self, parent, label=label, id=self._id)
+    if handler_function:
+      self.bind_event(wx.EVT_BUTTON, handler_function)
+
+
+class OKButton(IOTAButton):
+  _id = wx.ID_OK
+
+
+class CancelButton(IOTAButton):
+  _id = wx.ID_CANCEL
 
 # ---------------------------------- Inputs ---------------------------------- #
 
@@ -360,9 +404,14 @@ class DialogButtonsCtrl(CtrlBase):
       buttons = [('Yes', wx.ID_YES), ('No', wx.ID_NO)]
     elif preset == 'CLOSE':
       buttons = [('Close', wx.ID_CLOSE)]
-    if preset == 'PROC_DIALOG':
+    elif preset == 'PROC_DIALOG':
       buttons = [('OK', wx.ID_OK), ('Cancel', wx.ID_CANCEL)]
       choices = ['Basic', 'Advanced', 'Developer']
+      choice_label = 'Expert Level: '
+      choice_size = (150, -1)
+    elif preset == 'PHIL_DIALOG':
+      buttons = [('OK', wx.ID_OK), ('Cancel', wx.ID_CANCEL)]
+      choices = ['Basic', 'Intermediate', 'Advanced', 'Developer']
       choice_label = 'Expert Level: '
       choice_size = (150, -1)
 
@@ -427,63 +476,6 @@ class TextCtrlWithButtons(CtrlBase):
     main_sizer.AddGrowableCol(1)
     self.SetSizer(main_sizer)
 
-class PHILStringCtrl(CtrlBase):
-  def __init__(self, parent,
-               label='',
-               label_size=(100, -1),
-               label_style='normal',
-               value=''):
-
-    CtrlBase.__init__(self, parent=parent, label_style=label_style)
-
-    self.value = value
-
-    output_box = wx.FlexGridSizer(1, 2, 0, 10)
-    self.txt = wx.StaticText(self, label=label, size=label_size)
-    self.txt.SetFont(self.font)
-    output_box.Add(self.txt)
-
-    self.ctr = strctrl.StrCtrl(self)
-    self.ctr.SetValue(self.value)
-    output_box.Add(self.ctr, flag=wx.EXPAND)
-
-    output_box.AddGrowableCol(1, 1)
-    self.SetSizer(output_box)
-
-class PHILInputCtrl(CtrlBase):
-  def __init__(self, parent,
-               label='', label_size=(100, -1),
-               label_style='normal',
-               value=''):
-
-    CtrlBase.__init__(self, parent=parent, label_style=label_style)
-
-    self.value = value
-
-    output_box = wx.FlexGridSizer(1, 2, 0, 10)
-    self.txt = wx.StaticText(self, label=label, size=label_size)
-    self.txt.SetFont(self.font)
-    output_box.Add(self.txt)
-
-    self.ctr = path.PathCtrl(self, style=path.WXTBX_PHIL_PATH_DIRECTORY|
-                                         path.WXTBX_PHIL_PATH_VIEW_BUTTON|
-                                         path.WXTBX_PHIL_PATH_UPDATE_ON_KILL_FOCUS|
-                                         path.WXTBX_PHIL_PATH_DEFAULT_CWD)
-    self.ctr.SetValue(self.value)
-    output_box.Add(self.ctr, flag=wx.EXPAND)
-
-    # self.btn_browse = wx.Button(self, label='Browse...')
-    # viewmag_bmp = bitmaps.fetch_icon_bitmap('actions', 'viewmag', size=16)
-    # self.btn_mag = wx.BitmapButton(self, bitmap=viewmag_bmp)
-    # output_box.Add(self.btn_browse, flag=wx.RESERVE_SPACE_EVEN_IF_HIDDEN)
-    # output_box.Add(self.btn_mag, flag=wx.RESERVE_SPACE_EVEN_IF_HIDDEN)
-
-    output_box.AddGrowableCol(1, 1)
-    self.SetSizer(output_box)
-
-  def reset_default(self):
-    self.ctr.SetValue(self.value)
-
 class InputCtrl(CtrlBase):
   """ Generic panel that will place a text control with a label """
 
@@ -520,34 +512,6 @@ class InputCtrl(CtrlBase):
 
   def reset_default(self):
     self.ctr.SetValue(self.value)
-
-class PHILChoiceCtrl(CtrlBase):
-  ''' Choice control for PHIL choice item, with label '''
-  def __init__(self, parent,
-               choices,
-               captions=None,
-               label='',
-               label_size=(200, -1),
-               label_style='normal',
-               ctrl_size=(100, -1),
-               allow_none=False):
-
-    CtrlBase.__init__(self, parent=parent, label_style=label_style)
-    self.choices = choices
-
-    ctr_box = wx.FlexGridSizer(1, 3, 0, 10)
-    self.SetSizer(ctr_box)
-
-    self.txt = wx.StaticText(self, label=label, size=label_size)
-    self.txt.SetFont(self.font)
-
-    self.ctr = choice.ChoiceCtrl(self, size=wx.DefaultSize)
-    self.ctr.SetChoices(choices=self.choices, captions=captions,
-                        allow_none=allow_none)
-
-    ctr_box.Add(self.txt, flag=wx.ALIGN_CENTER_VERTICAL)
-    ctr_box.Add(self.ctr, flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-
 
 
 class ChoiceCtrl(CtrlBase):
@@ -1046,11 +1010,15 @@ class FileListCtrl(CustomListCtrl):
     self.Bind(wx.EVT_BUTTON, self.onAddFolder, self.btn_add_dir)
 
   def onAddFile(self, e):
+    wx.SystemOptions.SetOption(u"osx.openfiledialog.always-show-types", 1)
+    wildcard = "Image Files (*.cbf; *.mccd; *.img)|*.cbf;*.mccd;*.img|" \
+               "Image List Files (*.lst; *.txt)|*.lst;*.txt|" \
+               "All Files (*.*)|*.*|"
     file_dlg = wx.FileDialog(self,
                              message="Load File",
                              defaultDir=os.curdir,
-                             defaultFile="*",
-                             wildcard="*",
+                             defaultFile="*.cbf;*.mccd;*.img",
+                             wildcard=wildcard,
                              style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST |
                                    wx.FD_MULTIPLE)
     if file_dlg.ShowModal() == wx.ID_OK:
@@ -1563,56 +1531,57 @@ class TableCtrl(CtrlBase):
     self.SetSizer(self.sizer)
 
 
-class WidgetFactory(object):
-  ''' Class that will automatically make widgets for automated dialog making '''
-  w_args = [
-    'text',
-    'path',
-    'choice',
-    'checkbox',
-    'input_list'
-  ]
-
-  w_kwargs = [
-    'grid',
-    'browse_btn',
-    'mag_btn',
-    'onChange',
-    'onUpdate',
-    'onToggle',
-  ]
-
-  def __init__(self):
-    pass
-
-  @staticmethod
-  def make_widget(parent, object, label):
-
-
-    wtype = object.type.phil_type
-    wstyle = object.style
-
-    label = label.replace('_', ' ').capitalize() + ": "
-
-    if wtype == 'path':  # Two styles only: single line w/ Browse, or input list
-      if wstyle == 'input_list':
-        widget = FileListCtrl(parent=parent)
-      else:
-        widget = PHILInputCtrl(parent=parent, label=label)
-
-    elif wtype == 'str':
-      item = ' '.join([w.value for w in object.words])
-      widget = PHILStringCtrl(parent=parent, label=label, value=item)
-
-    elif wtype == 'choice':
-      choices = [w.value for w in object.words]
-      widget = PHILChoiceCtrl(parent=parent, choices=choices, label=label,
-                              allow_none=False)
-    elif wtype in ('int', 'float'):
-      widget = SpinCtrl(parent=parent, label=label)
-    elif wtype == 'bool':
-      widget = wx.CheckBox(parent=parent, label=label)
-    else:
-      widget = InputCtrl(parent=parent, label=label, buttons=False)
-
-    return widget
+# class WidgetFactory(object):
+#   ''' Class that will automatically make widgets for automated dialog making '''
+#   w_args = [
+#     'text',
+#     'path',
+#     'choice',
+#     'checkbox',
+#     'input_list'
+#   ]
+#
+#   w_kwargs = [
+#     'grid',
+#     'browse_btn',
+#     'mag_btn',
+#     'onChange',
+#     'onUpdate',
+#     'onToggle',
+#   ]
+#
+#   def __init__(self):
+#     pass
+#
+#   @staticmethod
+#   def make_widget(parent, object, label):
+#
+#
+#     wtype = object.type.phil_type
+#     wstyle = object.style
+#
+#     label = label.replace('_', ' ').capitalize() + ": "
+#
+#     if wtype == 'path':  # Two styles only: single line w/ Browse, or input list
+#       if wstyle == 'input_list':
+#         widget = FileListCtrl(parent=parent)
+#       else:
+#         widget = PHILInputCtrl(parent=parent, label=label)
+#
+#     elif wtype == 'str':
+#       item = ' '.join([w.value for w in object.words])
+#       widget = PHILStringCtrl(parent=parent, label=label, value=item)
+#
+#     elif wtype == 'choice':
+#       choices = [w.value for w in object.words]
+#       from iota.components.gui.phil_controls import PHILChoiceCtrl
+#       widget = PHILChoiceCtrl(parent=parent, choices=choices, label=label,
+#                               allow_none=False)
+#     elif wtype in ('int', 'float'):
+#       widget = SpinCtrl(parent=parent, label=label)
+#     elif wtype == 'bool':
+#       widget = wx.CheckBox(parent=parent, label=label)
+#     else:
+#       widget = InputCtrl(parent=parent, label=label, buttons=False)
+#
+#     return widget

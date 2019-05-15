@@ -103,9 +103,17 @@ class InputWindow(IOTABasePanel):
     self.input.button_sizer.Add(self.opt_btn_analysis)
 
     # Test buttons
-    self.tst_button_dials = wx.Button(self.input, label='DIALS options...')
+    from libtbx.phil import find_scope
+    from dials.command_line.stills_process import phil_scope
+    from iota.components.gui import phil_controls as pct
+
+    scope = find_scope(phil_scope, 'indexing')
+    self.tst_button_dials = pct.PHILDialogButton(parent=self.input,
+                                                 scope=scope,
+                                                 label='DIALS options...',
+                                                 handler_function=self.onTestDIALSOptions)
     self.input.button_sizer.Add(self.tst_button_dials)
-    self.Bind(wx.EVT_BUTTON, self.onTestDIALSOptions, self.tst_button_dials)
+    # self.Bind(wx.EVT_BUTTON, self.onTestDIALSOptions, self.tst_button_dials)
 
     # Put everything into main sizer
     self.main_sizer.Add(self.project_title, flag=f.expand, border=10)
@@ -258,26 +266,34 @@ class MainWindow(IOTABaseFrame):
               self.input_window.input)
 
   def onTest(self, e):
-    from libtbx.phil import find_scope
-    scopes = [find_scope(self.iota_phil, 'description'),
-              find_scope(self.iota_phil, 'output'),
-              find_scope(self.iota_phil, 'input')]
-    test = d.TestDialog(self,
-                          scope=scopes,
+    from iota.components.gui import phil_controls as pct
+    selection = ['description', 'output', 'input']
+    test = pct.PHILDialog(self,
+                          scope=self.iota_phil,
+                          selection=selection,
                           title='Test Options')
     if test.ShowModal() == wx.ID_OK:
       print ('debug: OK!!')
     test.Destroy()
 
   def onTestDIALSOptions(self, e):
-    from libtbx.phil import find_scope
+    from iota.components.gui import phil_controls as pct
     from dials.command_line.stills_process import phil_scope
+    from libtbx.phil import find_scope
 
-    scope = find_scope(phil_scope, 'spotfinder')
-    test = d.TestDialog(self, scope=scope, title='Test Spf Options')
-    if test.ShowModal() == wx.ID_OK:
-      print ('DEBUG: OK!!')
-    test.Destroy()
+    btn = e.GetEventObject()
+    test = pct.PHILDialog(parent=self, scope=btn.scope,
+                          title='Test Spf Options')
+    if test.run():
+      dlg_phil = test.phil
+      new_phil_scope = phil_scope.fetch(source=dlg_phil)
+      new_btn_scope = find_scope(new_phil_scope, btn.scope.name)
+      btn.scope = new_btn_scope
+
+      # btn.scope.show()
+
+    else:
+      print ('PHIL DIALOG DEBUG: CANCEL!!')
 
   def onItemInserted(self, e):
     print (self.input_window.input.all_data_images)
@@ -656,6 +672,8 @@ class MainWindow(IOTABaseFrame):
         print('JOB TERMINATED!')
     except Exception:
       pass
+
+    print ('Closing IOTA...')
 
     self.Close()
 

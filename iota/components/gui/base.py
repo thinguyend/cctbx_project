@@ -11,6 +11,8 @@ import os
 import wx
 from wx.lib.buttons import GenToggleButton
 from wx.lib.scrolledpanel import ScrolledPanel
+from libtbx.utils import Sorry
+from libtbx import adopt_init_args
 
 from wxtbx import bitmaps
 from iotbx.phil import parse
@@ -183,6 +185,8 @@ class BaseDialog(wx.Dialog):
                *args, **kwargs):
     wx.Dialog.__init__(self, parent, style=style, *args, **kwargs)
 
+    self.main_window = parent
+
     self.envelope = wx.BoxSizer(wx.VERTICAL)
     self.main_sizer = wx.BoxSizer(wx.VERTICAL)
     self.envelope.Add(self.main_sizer, 1, flag=wx.EXPAND | wx.ALL, border=5)
@@ -205,7 +209,6 @@ class BaseDialog(wx.Dialog):
       self.cfont = wx.Font(norm_font_size, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_ITALIC, wx.FONTWEIGHT_NORMAL)
     elif content_style == 'italic_bold':
       self.cfont = wx.Font(norm_font_size, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_ITALIC, wx.FONTWEIGHT_BOLD)
-
 
 class BaseBackendDialog(BaseDialog):
   def __init__(self, parent, phil,
@@ -330,81 +333,31 @@ class BaseOptionsDialog(BaseDialog):
 
     self.Layout()
 
+class Menu(wx.Menu):
+  """ Customizable context menu for IOTA GUI (based on the base Menu class
+      for Phenix GUI) """
 
-class PHILPanelFactory(IOTABaseScrolledPanel):
-  """ Factory class for dialog panel automatically created from PHIL
-  settings """
+  def __init__(self, frame):
+    """ Constructor
+    :param frame: parent window
+    """
+    adopt_init_args(self, locals())
+    super(wx.Menu, self).__init__()
 
-  def __init__(self, parent, objects, layers=None, *args, **kwargs):
-    IOTABaseScrolledPanel.__init__(self, parent=parent, *args, **kwargs)
+  def add_commands (self, command_list=None):
+    if not command_list:
+      raise Sorry('Cannot initialize context menu: no commands found!')
+    for (label, function) in command_list :
+      self.add_command(label, function)
 
-    self.layers = layers
+  def add_command (self, label, function):
+    if label is None :
+      self.AppendSeparator()
+    else :
+      menu_item = self.Append(-1, label)
+      if function is not None :
+        self.frame.Bind(wx.EVT_MENU, function, menu_item)
 
-    for obj in objects:
-      if type(obj) in (list, tuple):
-        pass
-      elif obj.is_scope:
-        self.add_scope_box(obj=obj)
-      elif obj.is_definition:
-        self.add_definition_control(self, obj)
-
-    self.SetupScrolling()
-
-
-
-  def get_all_path_names(self, phil_object, paths=None):
-    if paths is None:
-      paths = []
-    if phil_object.is_scope:
-      for object in phil_object.objects:
-        paths = self.get_all_path_names(object, paths)
-        paths.extend(paths)
-    elif phil_object.is_definition:
-      full_path = phil_object.full_path()
-      if not full_path in paths:
-        paths.append(full_path)
-    return paths
-
-  def add_definition_control(self, parent, obj):
-    alias = obj.alias_path()
-    label = alias if alias else obj.full_path().split('.')[-1]
-
-    wdg = ct.WidgetFactory.make_widget(parent, obj, label)
-    sizer = parent.GetSizer()
-    sizer.Add(wdg, flag=wx.RIGHT|wx.LEFT|wx.BOTTOM|wx.EXPAND,
-                        border=5)
-    self.__setattr__(label, wdg)
-
-  def add_scope_box(self, obj):
-    obj_name = obj.full_path().split('.')[-1]
-    label = obj.alias_path() if obj.alias_path() else obj_name
-
-    # Make scope panel
-    panel = wx.Panel(self)
-    box = wx.StaticBox(panel, label=label)
-    box_sz = wx.StaticBoxSizer(box, wx.VERTICAL)
-    panel.SetSizer(box_sz)
-
-    self.main_sizer.Add(panel, flag=wx.ALL|wx.EXPAND, border=10)
-
-    # Add widgets to box (do one layer so far)
-    for box_obj in obj.active_objects():
-      if box_obj.is_definition:
-        self.add_definition_control(panel, box_obj)
-
-  @classmethod
-  def from_scope_objects(cls, parent, scope):
-
-    scope_type = type(scope).__name__
-    if scope_type in ('list', 'tuple'):
-      objects = (r for r in scope)
-    elif scope_type == 'scope':
-      objects = scope.active_objects()
-    else:
-      objects = scope
-
-    return cls(parent, objects)
-
-  @classmethod
-  def from_filename(cls, filepath):
-    pass
+  def get_event_item_label (self, event) :
+    item = self.FindItemById(event.GetId())
+    return item.GetText()

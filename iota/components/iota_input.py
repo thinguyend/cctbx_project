@@ -32,6 +32,7 @@ output = $PWD
   .multiple = False
   .help = Base output directory
   .alias = Project Folder
+  .style = folder
 image_import
   .help = Parameters for image importing (& triage)
   .alias = Import Options
